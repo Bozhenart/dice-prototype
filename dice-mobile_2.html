@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Dice Mobile</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@700;800&display=swap">
+<style>
+:root{
+  --bg-page:#060d13;
+  --bg-shell:#0a1e29;
+  --bg-panel:#0f2b3a;
+  --bg-panel-2:#123748;
+  --bg-input:#0b2532;
+  --line:#1c4356;
+  --line-soft:#173a4a;
+  --text-hi:#f2f7fa;
+  --text-md:#a9c1cd;
+  --text-lo:#6d8894;
+  --accent:#2e7ff2;
+  --accent-hi:#5b9cff;
+  --win:#00b300;
+  --win-soft:#0d3a1c;
+  --lose:#ff0034;
+  --lose-soft:#3a0d18;
+  --gold:#f2b33d;
+  --radius-lg:32px;
+  --radius-md:20px;
+  --radius-sm:14px;
+  --radius-card:8px;
+  --shadow-lift:0 12px 30px -12px rgba(0,0,0,.55);
+  font-synthesis:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:
+    radial-gradient(900px 500px at 50% -10%, #0f2434 0%, transparent 60%),
+    var(--bg-page);
+  color:var(--text-hi);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+::selection{background:var(--accent);color:#fff}
+button{font-family:inherit}
+input{font-family:inherit}
+.tabular{font-variant-numeric:tabular-nums}
+
+.rtp-picker{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.rtp-picker button{
+  flex:1 1 auto;
+  background:var(--bg-input);
+  border:1px solid var(--line);
+  color:var(--text-md);
+  padding:7px 4px;
+  border-radius:10px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.rtp-picker button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ---------- phone shell (fills the real device viewport) ---------- */
+.phone{
+  background:var(--bg-shell);
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  height:100dvh;
+}
+
+.game-scroll{flex:1;min-height:0;overflow-y:auto;padding-bottom:60px;padding-top:76px}
+.game-scroll::-webkit-scrollbar{width:8px}
+.game-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+header.app-header{
+  position:absolute;left:0;right:0;top:0;z-index:30;
+  display:flex;align-items:center;gap:8px;
+  padding:10px 16px;background:#082432;
+}
+.logo{display:flex;align-items:center;height:22px}
+.logo img{height:22px;width:auto;display:block}
+.balance-chip{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(83,194,250,.12);
+  border-radius:10px;padding:2px 2px 2px 8px;font-size:14px;font-weight:600;color:#f0f2f5;
+  cursor:default;
+}
+.balance-chip .coin{width:20px;height:20px;border-radius:50%;flex:none;display:block}
+.balance-chip .chev{width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center;color:#91b7ca}
+.spacer{flex:1}
+.icon-btn{
+  width:36px;height:36px;border-radius:12px;border:1px solid var(--line);
+  background:var(--bg-panel);color:var(--text-md);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;flex:none;
+}
+.icon-btn:hover{color:var(--text-hi);border-color:var(--accent-hi)}
+.icon-btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.icon-btn.accent:hover{background:var(--accent-hi)}
+.icon-btn .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--lose);border:1.5px solid var(--bg-shell)}
+.hdr-btn{
+  width:36px;height:36px;border-radius:8px;border:none;
+  background:#144b66;color:#fff;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;flex:none;
+}
+.hdr-btn img{width:16px;height:16px;display:block}
+.hdr-btn:hover{filter:brightness(1.15)}
+.hdr-btn.accent{background:#0066e1}
+.hdr-btn .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ff5d26;border:none}
+
+.history-strip{
+  display:flex;gap:6px;overflow-x:auto;padding:0 16px;
+}
+.history-strip::-webkit-scrollbar{display:none}
+.pill{
+  flex:none;min-width:34px;height:28px;border-radius:14px;padding:0 4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:800;color:#fff;background:var(--bg-panel-2);
+}
+.pill.win{background:var(--win)}
+.pill.lose{background:var(--bg-panel-2);color:var(--text-md)}
+
+.bet-card{
+  margin:110px 16px;
+  background:#11374a;border:none;border-radius:var(--radius-card);
+  padding:16px 16px 12px;position:relative;
+}
+.field-row{display:flex;gap:8px;margin-bottom:16px}
+.field-group{flex:1;min-width:0}
+.field-group > label{display:block;font-size:12px;color:#698ca0;font-weight:400;line-height:16px;letter-spacing:.01px;margin-bottom:4px;cursor:default}
+.field-group > label.clickable{cursor:pointer;display:flex;align-items:center;gap:4px}
+.field-group > label.clickable:hover{color:var(--accent-hi)}
+.field-group > label.clickable svg{flex:none}
+.field{
+  background:rgba(0,0,0,.32);outline:1px solid rgba(18,68,92,1);outline-offset:-1px;border-radius:var(--radius-card);
+  padding:4px 4px 4px 16px;min-height:44px;min-width:0;display:flex;align-items:center;
+}
+.field-inner{display:flex;align-items:center;gap:8px;width:100%}
+.field input{
+  width:100%;min-width:0;background:none;border:none;color:var(--text-hi);font-size:14px;font-weight:600;line-height:20px;padding:0;
+}
+.field input:focus{outline:none}
+.field.readonly{opacity:1}
+.field.readonly input{color:var(--text-hi)}
+.field-unit{flex:none;color:#698ca0;font-size:14px;font-weight:600;line-height:20px}
+.field-icon-btn{
+  flex:none;width:36px;height:36px;border-radius:6px;border:none;
+  background:#12445c;color:rgba(180,213,232,.7);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;
+}
+.field-icon-btn svg,.field-icon-btn img{width:16px;height:16px;display:block}
+.field-icon-btn:hover{filter:brightness(1.2);color:var(--text-hi)}
+.field-icon-deco{
+  flex:none;width:36px;height:36px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;color:rgba(180,213,232,.7);
+}
+.field-icon-deco svg,.field-icon-deco img{width:16px;height:16px;display:block}
+
+.slider-wrap{margin:20px 6px 6px;position:relative}
+.slider-marks{display:flex;justify-content:space-between;margin-bottom:8px}
+.slider-marks span{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12.5px;color:var(--text-lo);font-weight:500}
+.slider-marks span::after{content:'';display:block;width:1.5px;height:7px;background:var(--line);border-radius:1px}
+.slider-track{
+  position:relative;height:14px;border-radius:999px;overflow:visible;
+  background:#2a4655;
+}
+.slider-fill-lose,.slider-fill-win{position:absolute;top:0;height:100%}
+.slider-fill-lose{background:var(--lose);border-radius:999px 0 0 999px}
+.slider-fill-win{background:var(--win);border-radius:0 999px 999px 0}
+.slider-handle{
+  position:absolute;top:50%;width:26px;height:26px;border-radius:50%;
+  background:#fff;transform:translate(-50%,-50%);
+  cursor:grab;box-shadow:0 2px 8px rgba(0,0,0,.4);touch-action:none;z-index:3;
+  display:flex;align-items:center;justify-content:center;color:var(--accent);
+}
+.slider-handle:active{cursor:grabbing}
+.result-badge{
+  position:absolute;top:17px;transform:translateX(-50%) scale(.85);
+  padding:8px 12px;border-radius:10px;font-size:14px;font-weight:600;line-height:20px;color:#082432;
+  opacity:0;transition:opacity .2s, top .25s, transform .25s;pointer-events:none;white-space:nowrap;z-index:4;
+  max-width:270px;
+}
+.result-badge::before{
+  content:'';position:absolute;top:-7px;left:50%;width:20px;height:8px;
+  transform:translateX(-50%);background-repeat:no-repeat;background-size:contain;z-index:-1;
+}
+.result-badge.win{background:#00eb00}
+.result-badge.win::before{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAIpJREFUeAGlj8kNgzAABMekgeSRPyUkJaSTdAAdUAolUAJ0QAnwRByCAkBgzAewxTnSPryyR2vYo8KhpJZJyHC5RYVHQb+KxyXMsikbS4WxrfnQErPNjzfRurQMMpuOgD0Evrqr1boslJ+yOYIg5cGXF42+8KxspFdv4vlSSx6e5PxPy5bSUDmkawBpRj+3O7y0SQAAAABJRU5ErkJggg==)}
+.result-badge.lose{background:var(--lose)}
+.result-badge.lose::before{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAJxJREFUeAGlj8EJwkAQRd8InrxYQkpQUPCoHdiJWsFqB3ZgCdqBFiDEDrQDvXgSWT8mh7Ahm4R8mP3D7szjL9TIM115Jk/5Xb6miwRwKh+Ui+1YDCbbVjxvjOu+MVDfG+lMiWsh6CW87JVhs0R2pFZ2yGerE2YD37O6hEayB3zGxu1FmLA97L+l2X5aTGqe+RDeS/WuHSxMyg4Gpx+GUDZ46GhTRAAAAABJRU5ErkJggg==)}
+.result-badge.show{opacity:1;top:24px;transform:translateX(-50%) scale(1)}
+
+.cta-row{display:flex;flex-direction:column;gap:12px;margin:0 16px 16px}
+.btn-bet{
+  background:#0075ff;
+  border:none;color:#fff;font-size:14px;font-weight:600;line-height:20px;border-radius:var(--radius-card);
+  cursor:pointer;height:44px;display:flex;align-items:center;justify-content:center;padding:0 20px;
+}
+.btn-bet:hover{filter:brightness(1.08)}
+.btn-bet:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.btn-random{
+  background:#12445c;border:none;color:var(--text-hi);font-weight:600;font-size:14px;line-height:20px;
+  border-radius:var(--radius-card);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  height:44px;padding:12px;
+}
+.btn-random svg,.btn-random img{width:20px;height:20px;flex:none;display:block}
+.btn-random:hover{filter:brightness(1.15)}
+
+.amount-block{margin:0 16px 14px}
+.amount-block > label{display:block;font-size:11px;color:var(--text-lo);font-weight:700;margin-bottom:6px}
+.amount-field{
+  display:flex;align-items:center;justify-content:flex-start;height:44px;min-width:0;
+  padding:4px 4px 4px 16px;gap:12px;
+  background:rgba(0,0,0,.32);border:1px solid rgba(18,68,92,1);
+  border-radius:var(--radius-card);
+}
+.amount-input-wrap{flex:1;display:flex;align-items:baseline;gap:2px;min-width:0}
+.amount-field span.cur{font-size:14px;line-height:20px;color:rgba(180,213,232,.7);font-weight:600;flex:none}
+.amount-field input{flex:none;width:3ch;min-width:0;background:none;border:none;color:#ecf5f9;font-size:14px;line-height:20px;font-weight:600;padding:0}
+.amount-field input:focus{outline:none}
+.quick-btns{display:flex;flex:none;align-items:center;height:36px;background:#12445c;border-radius:6px}
+.quick-btns button{
+  background:none;border:none;height:36px;border-radius:8px;
+  color:rgba(180,213,232,.7);font-size:14px;font-weight:500;padding:0 12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.quick-btns button:hover{background:rgba(255,255,255,.08);color:var(--text-hi)}
+.qb-divider{width:1px;height:24px;background:rgba(83,194,250,.12);flex:none}
+
+.payout-block{margin:0 16px 14px;display:flex;flex-direction:column;gap:4px}
+.payout-label{font-size:12px;color:#698ca0;font-weight:400;letter-spacing:.01px}
+.payout-label b{color:#88a4b2;font-weight:600}
+.payout-box{
+  display:flex;align-items:center;gap:2px;min-height:44px;
+  padding:4px 4px 4px 16px;
+  border:1px solid rgba(18,68,92,1);border-radius:var(--radius-card);
+  font-size:14px;line-height:20px;font-weight:600;color:#ecf5f9;
+}
+.payout-box .cur{color:rgba(180,213,232,.7);font-weight:600}
+
+.pf-block{
+  margin:0 16px 14px;padding:16px;background:#11374a;border-radius:12px;
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.pf-row{align-self:stretch;display:flex;justify-content:space-between;align-items:center}
+.pf-left{display:flex;justify-content:flex-end;align-items:center;gap:16px}
+.pf-label-group{display:flex;justify-content:flex-end;align-items:center;gap:4px;cursor:pointer;background:none;border:none;padding:0}
+.pf-label-text{display:flex;justify-content:flex-start;align-items:center;gap:3px;color:rgba(180,213,232,.7);font-size:12px;font-weight:400;line-height:16px;letter-spacing:.04px}
+.pf-shield{width:16px;height:16px;flex:none;display:block}
+.pf-right{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.pf-btn{
+  padding:8px;background:#12445c;border:none;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;flex:none;
+}
+.pf-btn img{width:16px;height:16px;display:block}
+.pf-btn:hover{filter:brightness(1.15)}
+.pf-btn.active{background:#0066e1}
+
+.mode-switch{
+  margin:0 16px 12px;padding:2px;background:rgba(0,0,0,.32);border-radius:8px;
+  display:flex;align-items:center;
+}
+.mode-tab{
+  flex:1;border:none;background:none;cursor:pointer;
+  padding:10px 16px;border-radius:8px;box-shadow:0 0.9px 0.9px rgba(0,0,0,.05);
+  font-size:14px;font-weight:600;line-height:20px;text-align:center;color:rgba(180,213,232,.7);
+}
+.mode-tab.active{background:rgba(83,194,250,.12);color:#ecf5f9;border-radius:6px}
+.autobet-panel{margin:0 16px 16px;display:none}
+.autobet-panel.show{display:block}
+.autobet-panel .btn-bet{width:100%}
+.chip-row{display:flex;gap:6px;margin-bottom:10px}
+.chip-row button{
+  flex:1;background:var(--bg-input);border:1px solid var(--line);color:var(--text-md);font-weight:700;font-size:12px;
+  padding:8px 0;border-radius:10px;cursor:pointer;
+}
+.chip-row button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-stop{background:var(--lose)!important}
+
+/* ---- live bets ---- */
+.live-section{padding:4px 16px 22px}
+.live-panel{background:#11374a;border-radius:var(--radius-card);overflow:hidden;display:flex;flex-direction:column}
+.live-title{padding:16px 16px 0;font-size:16px;font-weight:600;line-height:20px;color:var(--text-hi)}
+.live-tabs-wrap{padding:12px 16px}
+.live-tabs{display:flex;align-items:center;padding:2px;background:rgba(0,0,0,.32);border-radius:var(--radius-card)}
+.live-tabs button{
+  flex:1;background:none;border:none;border-radius:6px;cursor:pointer;
+  padding:8px 16px;font-size:14px;font-weight:600;line-height:20px;
+  color:rgba(180,213,232,.7);
+}
+.live-tabs button .lt-count{color:rgba(180,213,232,.7)}
+.live-tabs button.active{background:#12445c}
+.live-tabs button.active,.live-tabs button.active .lt-count{color:var(--text-hi)}
+.live-tabs button.active .lt-count{color:rgba(180,213,232,.7)}
+.lt-divider{width:1px;height:24px;background:rgba(83,194,250,.12);flex:none;margin:0 2px}
+.live-cols{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;gap:8px}
+.live-cols span{font-size:12px;font-weight:400;line-height:16px;letter-spacing:.01px;color:#698ca0}
+.live-cols .lc-mult{width:80px;text-align:right}
+.live-cols .lc-win{flex:1;text-align:right}
+.live-cols .lc-name{flex:1}
+.live-rows{max-height:350px;overflow-y:auto}
+.live-rows::-webkit-scrollbar{width:8px}
+.live-rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.live-row{height:52px;padding:8px 16px;display:flex;align-items:center;gap:8px}
+.live-row:first-child{animation:rowIn .35s ease}
+@keyframes rowIn{from{background:rgba(46,127,242,.18)}to{background:transparent}}
+.lr-name-wrap{flex:1;min-width:0}
+.lr-name{color:#698ca0;font-size:12px;font-weight:400;line-height:16px;letter-spacing:.01px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr-bet{display:flex;align-items:baseline}
+.lr-bet .num{color:var(--text-hi);font-size:14px;font-weight:500;line-height:20px}
+.lr-bet .cur{color:#698ca0;font-size:14px;font-weight:500;line-height:20px}
+.lr-mult{width:80px;display:flex;justify-content:center}
+.lr-mult-badge{padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.18);color:rgba(180,213,232,.7);font-size:14px;font-weight:500;line-height:20px}
+.lr-win{flex:1;text-align:right;font-size:14px;font-weight:600;line-height:20px;color:#4bc980}
+.lr-win.lose{color:var(--text-lo);font-weight:600}
+.empty-row{padding:22px 16px;text-align:center;color:var(--text-lo);font-size:12px}
+
+nav.bottom-nav{
+  position:absolute;left:0;right:0;bottom:0;z-index:30;
+  display:flex;height:60px;box-sizing:border-box;
+  border-top:1px solid rgba(83,194,250,.12);background:#082432;
+}
+nav.bottom-nav button{
+  flex:1;background:none;border:none;color:#88a4b2;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:0;
+}
+nav.bottom-nav .nb-icon{width:24px;height:24px;padding:2px;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
+nav.bottom-nav .nb-icon img{width:20px;height:20px;display:block}
+nav.bottom-nav .nb-label{font-size:10px;font-weight:600;line-height:14px;letter-spacing:.10px;color:#88a4b2}
+nav.bottom-nav button:hover .nb-label,nav.bottom-nav button.active .nb-label{color:var(--text-hi)}
+nav.bottom-nav button:hover .nb-icon img,nav.bottom-nav button.active .nb-icon img{filter:brightness(1.6) saturate(1.2)}
+
+/* ---- toasts ---- */
+.toast-stack{position:absolute;top:10px;left:10px;right:10px;z-index:60;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  background:var(--bg-panel-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:11px 13px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow-lift);
+  transform:translateY(-14px);opacity:0;transition:transform .25s,opacity .25s;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast .ic{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.toast.win .ic{background:var(--win-soft);color:var(--win)}
+.toast.error .ic{background:var(--lose-soft);color:var(--lose)}
+.toast.info .ic{background:rgba(46,127,242,.15);color:var(--accent-hi)}
+.toast .body b{display:block;font-size:13px;margin-bottom:2px}
+.toast .body span{font-size:11.5px;color:var(--text-md);line-height:1.4}
+
+/* ---- sheets / modals ---- */
+.overlay{
+  position:absolute;inset:0;background:rgba(2,8,12,.6);backdrop-filter:blur(2px);
+  display:flex;align-items:flex-end;z-index:70;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{
+  width:100%;max-height:88%;overflow-y:auto;background:var(--bg-shell);border:1px solid var(--line-soft);
+  border-radius:28px 28px 0 0;padding:18px 18px 24px;transform:translateY(16px);transition:transform .2s;
+}
+.overlay.show .sheet{transform:translateY(0)}
+.sheet-head{display:flex;align-items:center;margin-bottom:14px}
+.sheet-head h3{margin:0;font-size:16.5px;font-family:'Manrope',sans-serif}
+.sheet-head .icon-btn{margin-left:auto}
+.menu-item{
+  display:flex;align-items:center;gap:12px;padding:13px 6px;border-bottom:1px solid var(--line-soft);
+  cursor:pointer;color:var(--text-hi);font-weight:600;font-size:14px;
+}
+.menu-item:last-of-type{border-bottom:none}
+.menu-item .mi-icon{width:36px;height:36px;border-radius:12px;background:var(--bg-panel-2);display:flex;align-items:center;justify-content:center;color:var(--accent-hi);flex:none}
+.menu-item .chev{margin-left:auto;color:var(--text-lo)}
+
+.acc-item{border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:10px;overflow:hidden}
+.acc-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;font-weight:700;font-size:13.5px;background:var(--bg-panel)}
+.acc-head .chev{transition:transform .2s;color:var(--text-lo)}
+.acc-item.open .acc-head .chev{transform:rotate(180deg)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.acc-item.open .acc-body{max-height:600px}
+.acc-inner{padding:4px 14px 14px;font-size:12.5px;color:var(--text-md);line-height:1.6}
+.acc-inner code{background:var(--bg-input);padding:1px 5px;border-radius:5px;color:var(--gold);font-size:12px}
+.acc-inner .ex{background:var(--bg-input);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:8px;font-size:12px}
+
+.pf-step{display:flex;gap:10px;margin-bottom:14px}
+.pf-num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.pf-text{font-size:12.5px;color:var(--text-md);line-height:1.5}
+.hash-box{
+  display:flex;align-items:center;gap:8px;background:var(--bg-input);border:1px solid var(--line);
+  border-radius:12px;padding:9px 10px;margin-top:6px;
+}
+.hash-box span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;color:var(--text-hi);font-family:monospace}
+.hash-box button{background:none;border:none;color:var(--accent-hi);cursor:pointer;flex:none;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700}
+
+.limit-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.limit-row:last-child{border-bottom:none}
+.limit-row .li{width:36px;height:36px;border-radius:12px;background:var(--bg-panel-2);display:flex;align-items:center;justify-content:center;color:var(--accent-hi);flex:none}
+.limit-row .lt small{display:block;color:var(--text-lo);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.limit-row .lt b{font-size:15px}
+
+.rtp-row{display:flex;align-items:center;gap:10px;margin-top:16px}
+.rtp-row label{font-size:12px;color:var(--text-lo);font-weight:700;flex:none}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:0.001ms!important;animation-duration:0.001ms!important}
+}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="toast-stack" id="toastStack"></div>
+
+    <header class="app-header">
+        <div class="logo"><img src="data:image/png;base64,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" alt="1win"></div>
+        <div class="spacer"></div>
+        <div class="balance-chip">
+          <img class="coin" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAz9JREFUeAHtmc1O20AQgGcdg0gr8fMAQLiDygug0gfgAeDEGQ6UG3Ap3LhBTxzLAcEDILiSCjiXiAdIygvEBBVVCvF0xj/EeNeJ17GdVs0njWJvxvHs7vzsbgAGDPi/EZASaJqLYNvzgPiRbudJxj1hLJKaI0JUwDDK4uWlDP0GyUA0jC8oRJ0ENaVKz36j3yhB3niGHyQwWi15doRetpFwxLvPSKGwClmS6qhHz8YBpI3jMkJcZW58W35gOwGk0IF8jfflCtIgF7fJyp04qPpmfLsTnzvZGFnInLTmTmMJ+otFxXFGuMVQwoh8jAoU9N94ZtyzRYlyBrzRr4IGODYGzycnHXWM+3sYurwE8+YGtEGcUM2CugNUGemBVdDAnpqCp0ollu7w6SmM7OyAeHyE2AixJ2x7V2pW6aI7+iXQINiBAo20SSMdpDU7C/bcnKPH8Cy8X1oCDSwK6YmuWryqTJItWtPTaFmWI89HR5E6T9fXr3rNhQW99wAshu2Vg5iXxBlhPDw4ruPTXFkBLQxDsk3ugLuez4xgALcmJ0ELxMVwkyqNliBDOFv5iEYDNPkQbsi9A83l5dfrBOlUWuCZcZQ64WcV/5PB0dE39z5s/O+tLeeaU+jQxQVoItkmpVGOdtCgQakTFcZ2o7i+7tQDXTgfBe9VLmRBhhS8/J/EeFDYZkYoxXajdzSSTHApUbi9hZH9/Td67DKcRrWqr0wt3KCagTvQwDcomF0My5J0uDr3aDzzU3p/uMFZfyPG3kjEiYHhszMorq1BzwixSeuhw2CTqhJrzUCuKGyLWszVIWYcBNPor/Nz55oXcsXt7fZLyHVScJ8aZaCZcKOpVBXiK7lR5CYiCAem1OYFbKoIUQaUM7x6Rxbys78C295TNStngHc+6M7CBsSEXaTopdQMRv+Y3Kem/CrqGedgyd3YpHfAlIwaDeQnoagBTOSmXrinAZvQbxD3ooyP97xhHOZy/qPegaUTi/gvHy06Hcj/cPcKs4i9XNwpLbeJ7AQAn5dWMzC+zr8NecAndzQbx2mOOvYjXQc6Uk044ru9Gp7e36zuodM8FT8+lil5EvybleWO8vp3/qQXl2HAgAE98wd+Dj+y/BbeCAAAAABJRU5ErkJggg==" alt="">
+          <span id="balanceDisplay" class="tabular">0</span>
+          <span class="chev">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <button class="hdr-btn accent" id="btnDeposit" title="Пополнить">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAVJJREFUeAHFl4FVgzAQhi99DsAIcYM6gThBdQI7gis4ghOAG9QJ0A1wAthANjj/k9jXR6FJ2yT3vfc3FMi743LcBSJlzNxJZl5j2EBrp0sZnL6g2hjTn7wbhguo4nRUkF0ybqGO09MdOZHR+LwTnDbsSzRi2+CgxNiQDg8r/DyTHo/iwDWv2bVsZAmYFLmhNEjxeYda730cnxoqKJDYS9Cj3N6eM2FFcXn9P+Cw2vIT24HWGS8xbN25NxrzYY4idhIOk//SAV+cU/cY7HRC7AhMsc64jLOJGTsCFuppXAqJRinr7K5lcaCEPhH2AYafKKDMx34N5anvvDufA2LngIS5wTNtQyek7AUSDV8pJvVmJEvQkx6tOPBBevw5sCM9xhKNNGg4P9XeDdbelmd2omPP11HN6ah4slta+ji1NPZzaaEFLTSSQKQYfUM7lGhvYcrOL6ZGUNwfqJ4VAAAAAElFTkSuQmCC" alt="">
+          </button>
+        </div>
+        <button class="hdr-btn" id="btnBell" title="Уведомления">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAWJJREFUeAHVl41xgkAQhd85KQArCB3EDmIHsQNJBdiBdGAL6SDpICnBDsQKIBVsdsPhIMIBx905fjM7yixzb3n3swBYQkQpR8Fx4tgjJCyY0C07hEI/dZsTfMMimx7xSxHiDnzAAx9oPG7XxETxmgNcQN0LbizzFiYPEJN5zoeQbRqZNBYDNaw5Ytgj4rs5BaSYz6spqfoS2roCblgqpcquhMmBFdwR9yWGpsAVkU0BJQIQyoEcFgW8wR3JlJtlB2zJPdux4in5Y39P8Zqrk1G1CpCXihh+KflQWtYXi4Z4HEBciLTWdQEItO/bWpcC9Fn9A/8c+/qCTMOKqh7ui6Jpf18R8hLyQW4R4c8u8aF2vNbxgqqhjO2QOceR48zxBYPtChPRTxHhtsPl/wMqleORmOQAVaeYTIfY+dtKP+vfM7uQYSRPmIYIJwP3vMMn7EJmWO0ZQkDVx8p3Y4vJ/w0s+ANiZJHj3kz46AAAAABJRU5ErkJggg==" alt="">
+          <span class="dot" id="bellDot"></span>
+        </button>
+      </header>
+
+    <div class="game-scroll" id="scrollArea">
+
+      <div class="history-strip" id="historyStrip"></div>
+
+      <div class="bet-card">
+        <div class="field-row">
+          <div class="field-group">
+            <label>Multiplier</label>
+            <div class="field readonly">
+              <input id="multiplierField" readonly value="×0.00">
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="clickable" id="dirLabel" title="Нажми, чтобы сменить направление">Roll Over</label>
+            <div class="field">
+              <div class="field-inner">
+                <input id="thresholdField" inputmode="numeric" value="50">
+                <button type="button" class="field-icon-btn" id="btnRandom2" title="Случайный порог">
+                  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAcpJREFUeAGVU2FO21AMtv1SWIFpqWD/uxOs3ICdYOwE6w22Gyw9wbYTsBusnKBwgvYG5N+ktVGLSBsl5dnYCYGAaCU+6SmR37P9+bON8AzTbH0CIp9J5FQAumZDwIn+Txz5Qafdjs02Fwk7iAusHc3Aq/VPAenXNr1c2FedwwcbUXTYbg2SZX4lgufUcB6ZszkJ88Dt7XQO93fL44g/mA2qu2i2KkYlOwfvyqizZX6mR5JVMZ5nWRc24H+a9pJVfmVv7UyXeUTTG60ZoI8IMaH/Utf4HLM06xO2xiLwJEGAxF/LOhkHnYOXnQ3OwYVn/KMvQxAMNWHIAkMwMYzONurbEJjCRn8T9U2wdgdwGweq8DF4H8IrgcwjDxQHr81smKdFz+t0WMsDrf8UEL9VV7JQcxyg/70tMANUwgtemgY9FDl5oKaRvdCl/r4YwMRmX02rc/4XNfuqlGIWPD7a3x1udGYaibZQ05csiagax/uF6TqUv7O06Dfb+i+TbpKtf7Cnsb1BxMnRwZvvdhcww7UjncK89ckHeSSkeqCceSZI0rxaJi5CuadomWlvJ2qwflzNmubaQ+TQfdTl6tWleZFz1Wr4/m37olnWHdzvCzYzS9eWAAAAAElFTkSuQmCC" width="16" height="16" alt="">
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Chance</label>
+            <div class="field">
+              <div class="field-inner">
+                <input id="chanceField" inputmode="numeric" value="50">
+                <span class="field-icon-deco" title="%" aria-hidden="true">
+                  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAQdJREFUeAHFkT1uwkAQhWcGIiWiixLsNu4ixeeIlIabhB7XSdoobTgGIHEDeiNoELUxEg1/wuzu4EVYMvYaCiSYana135ud9wBuXZg03dG8KrfrOivlAtJYSP6pudbknAAlTbRZeiCVgwQ9BGndlfEz/VAPaA/C/1Y/aBoF4uYFSuB/vNrfCrC//0kKFtH6C1hZRLQwCiCRrxjczjBsgII3jNfIwvqu9Ki8Ag+CqoyowazXIH8rFn/3D8+cwMAQlp+g/m7bS6NAttKTNSx45dVcJ2cqXgIbBboBV8Rs+puG9SpFEZMBzk0+FfGRwAF2st8+FfGRQHyomHYuitjogdnUfMRFpl6/dsFR2Wpw05SlAAAAAElFTkSuQmCC" width="16" height="16" alt="">
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slider-wrap">
+          <div class="slider-marks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+          <div class="slider-track" id="sliderTrack">
+            <div class="result-badge" id="resultBadge">78</div>
+            <div class="slider-fill-lose" id="fillLose"></div>
+            <div class="slider-fill-win" id="fillWin"></div>
+            <div class="slider-handle" id="sliderHandle">
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAMCAYAAABr5z2BAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAPZJREFUeAGtUksOAUEQrWrCdo4wR+AIcwNuoBcSdjo4BTKsSCyaE3ADbsAR5gi2xEypGpnJEJ/xeUknr6pevf4VwI/A+0THt84xQss0mHYbRnLt0cJnoVNSZMZGH7J6lQ1avnVPIW6AoMarkxaYE0GDjXeieWjQ9G0FI9wQQAWegcAVTdYkNmgPba0YxTu78A5iEuJOeiQsXgmuuPAJHOlpDayn+G4H+BKI4KhZX2/5XHWO8xuhaKk+7el1/AZCqEBVLgQ5moOzIk96JEx/YWZ0QFx4ZcKzsBfN3Oh9kruZAzEpKz4J0JKAJkk+5gjrUoE80cA/cQGsxmUBlSmawQAAAABJRU5ErkJggg==" width="16" height="12" alt="">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn-bet" id="btnBet">Ставка</button>
+        <button class="btn-random" id="btnRandom">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAh9JREFUeAGVVe1R20AQ3V1hexwzEzPx5C/XAXIHuAOogKQDOiB0kA5ogQ5CKkBUYPErM4AH/ZBGsYJ2s3f6sLClsXg/pPGN9t17b/fOCFv4k4oZcO6jvBlBOgGUKQr4AmDcB4h3Hubfj8bjEFqA9vGapiYX7wZZfEGYwn5ELLj4ejgMdggtGTP9qhX0hSqdfRoutpcpZ7ra2IFbfd724QMRv22ZQNBsdhydzyajcwQJYT+mNu9dwsaO1v5TnGkD0EAPDDhzKl+S9VlNyCCP1Y5qf0ko93WFqlYHd12EgoVCBLxaJZmrI/UcdXwf2dBnh8OFFgRtHyCTse9c5EFA/Odk/UMtS9ClwEbwKqJjJNN2hWwKIxCWKz4BU5dCFwEn2bKaAh3aqBmBKj9xb+GwIKbP5A24U2GhYjPoRDy3Eezk2hBF5RGK4APAchMs6/SIFvUMD1TKCPoQcU73q2S9tA1wZVWziE/db+LQEYrI7z6E1n6dpzbCo/za8QFcFNIlcIQHb8OfXaPRhLOosynM1zQezm1cq+RffXTF8yJsFrzE6TcA70J30kwwUmuPtoMMeTCYTMIjxDprO06cKpnIZbWmxxYRemL7nkSRs+YEKFHwZTKaH7QVP8d/L3VGjvWSMPZy1fSnwpkrFqdBbJ7vUDWoVaG7cHPvRq2fQg/YBhHywma61/JTHPvEAyMe+Nq4Y5ViUC8F2wjbJFUcNP8S/gORGgWIScJltgAAAABJRU5ErkJggg==" width="20" height="20" alt="">
+          Случайный выбор
+        </button>
+      </div>
+
+      <div class="amount-block">
+        <label>Сумма ставки</label>
+        <div class="amount-field">
+          <div class="amount-input-wrap">
+            <input id="betAmountField" inputmode="numeric" value="100">
+            <span class="cur" id="curLabel2">₽</span>
+          </div>
+          <div class="quick-btns">
+            <button data-q="half">1/2</button>
+            <span class="qb-divider"></span>
+            <button data-q="double">x2</button>
+            <span class="qb-divider"></span>
+            <button data-q="max">MAX</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="payout-block">
+        <div class="payout-label">Профит от выигрыша <b>×<span id="kDisplay">2.50</span></b></div>
+        <div class="payout-box"><span id="payoutDisplay" class="tabular">0</span><span class="cur">₽</span></div>
+      </div>
+
+      <div class="mode-switch" id="modeSwitch">
+        <button class="mode-tab active" id="tabManual" data-mode="manual">Ручной режим</button>
+        <button class="mode-tab" id="tabAuto" data-mode="auto">Авто</button>
+      </div>
+
+      <div class="autobet-panel" id="autoPanel">
+        <div class="chip-row" id="autoChips">
+          <button data-n="5">5</button>
+          <button data-n="10" class="active">10</button>
+          <button data-n="25">25</button>
+          <button data-n="0">∞</button>
+        </div>
+        <button class="btn-bet" id="btnAutoStart">Запустить автоставку</button>
+      </div>
+
+      <div class="pf-block">
+        <div class="pf-row">
+          <div class="pf-left">
+            <button class="pf-label-group" id="pfLabelBtn" title="Проверка честности">
+              <span class="pf-label-text"><span>PF</span><span>protected</span></span>
+              <img class="pf-shield" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAx5JREFUeAHFVz1wElEQ3n2HjjPp/IHrnGEsTAxJGetQMAhJWump1VZTpzd9aqlFE4cC6tAKmiYDdh7oxMIhmuRu131nuEACx+Mnk68B7t7b3bf7vv0WhAlQcnju7GcrqSy1wgxzxPSBCOsbiVgLxgSaLtROvaNWAlCtMVFioDGl9j2i6toTu2xodnQAuwdOAthaYfKSiDAHBpCstOWjjhaUM/N2DcYNQJ/W/dVaB1arwBSDKXAeTNFjrA4qEfY6Deo6JMXTQkpUkxJVbt+L7ads7PjP/BQjrLILT01TPAtIZiq6RBFJ8wsgiqHxdZwNUB+aYUUx0De4IShUDSUHH5u7swIzNhUxNOGGwMprK/RmHwAydAzXNdUtnm0JtHOik01gKI5aGzmNNVRq2e4IQWcThDSdMz5+lV162Mgs2jtid2hLZoROahk76v++6ZmAcqNdPt7cSMQvDkPUHrZeM0B/RvzNhkzQ6eVBzUpOat2lnWd23K+938qPfuSljSeH2dIMCAJQBG0a0YiYqRK5o965p5CTlF0YVlDIzEcL3Z+lw99Rcf5GnMdD7QkDggCIhAlW2Gpoe/y3kH0U15u2P31x6nLq54RUEbXrd376Z8tEwPCc/n4AEYaGG7bYkkvqXmQ+LXpfcpz9tG0HdPv42YmL89em6qkZ4NvuPtj7+r0gdRkqRvrW6nRnH9tX6CUZSXoMeeN5QWxlF+yc/q6Cp2g1wjZJyuakaeX3Dtpb72ut4JS7dSdHAC/HUdIuAzQiQVRMuiYj5wA9K1gWvBUZL4KnI4McjIkuA/oCABeqchHXTQzobMjFzMGkEo5etfs1KEFmya4hslEPnwrCqN45UfW9IxzZv6eGTEG9P/sCiHhQvNYsyOld97gyNAAtTEhYgGuCTD+FPq24HIBGelF4biClYwOtYnrAHxY1aK2WUj1Cw6x8i63MwoOdge/CNkqTycsKI2qGeC9nFqLbQ1/DCOhON0mz8ScjkNa9aIeW06iVlA6d6BUZDoGWbq2ely/cxAH0BkInkGCl9J+KaKB8MtIhUlO0oq7uQznVo5Kj8A9puXMy9fgmAAAAAABJRU5ErkJggg==" alt="">
+            </button>
+          </div>
+          <div class="pf-right">
+            <button class="pf-btn active" id="pfSound" title="Звук">
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAArZJREFUeAHtV11uGkEMtr0JDSlViZrkteQEgRvACcINQk/Q9gRNTxDlBNATNJwg9ATlBtk+VQqgRSqwsGTGHS87CyT8lUKkSPkkkNezHn+MPbYBeMFzgsecbvnDL63u4LbVDX6KDE8Fz/cz4rjZHfD0JyivYt/qBZdi3+j1P03qcRVjr9PJatz9zgCZWetMunCUTNZgIYHBLfPIXjPmjlOJusgES9D078817N7Mcx5CUx6WQCv9wcpEcBnLi4xaXRNjrSqMkF70HhK+f6i7C4KshM0+H70xJ6T5Knxgzjd8Px/a2heaHb9kqJ0ZVegMGdIMnIVVgFg73E8UpvZCKpvNXTLhOUgmXdF7HqdVIvAmbXZGvzQoG2cl4JAejL9XBHNmptqETbEjSRqSOzjAdrM3uDYLRTmF3z5nSNiGzjeIw1SyAoy1iFx83CHu4ZsVd3hQNDngnMMWwKy+WhmVU7SyoxK1WI90Sog6A/+PR0kqSYfA7sgTn1m9hCHWa84TR0m3aQICxfgjEjOSgFbPTK61o3nGmwAiuFbu7439aOBfkwSeHKYQvY1l2CLMCZxaea8P7XhBx2Fvb5cAQzYi4kryTRAbFTspVMICtgCvE2Rt/2BbE2BUDW2FlVwgcyU2QeDRHgr5o5WZVFx8lBPkrYxM18SIddgwgbAXAJQiN5WpVu1AXBMcR9UItK7CliCxd2hcEaPuWIoWa9KkaKpur+vowQnInpqHOUomcrYTCpSm8QinRz1huh2jaccctWNcvx3PQsMf5lHrm2hv993+q5MpAjON/vgXSLR08DREq0ev94qL3pF50N4Kh/SJPZmFdcA0lAtk/gxLsTyRWXNV7j2b/SbDstJQemeGUofMUMrrD6XzsFIlPE6l6oS6MNlcxt75al3n/wypYpIX4Z8SmfGNDC947vgLnQlZ/SbugXoAAAAASUVORK5CYII=" alt="">
+            </button>
+            <button class="pf-btn" id="pfTurbo" title="Турбо-режим">
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAgCAYAAAABtRhCAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAk5JREFUeAG1l2FO2zAUgJ9diBqtPxppm8avdTeAG3CE7gQbJ9g4Ad0Jtp4AbrDdoLtBuUH7D4kSBYmkaRNi45coxYTYsQ18UtWoifvl2e89JwCORGk6CpNsHsbbKEzzM9NxBBxAGWN0xgFG9W+9zAuCgNx2jaVgScT5sClDNn0YqsaE6+xHmGwXOBN7YEmxzs6hIdMRJvkZ52yCx4SxsVWE4k5/i6+x8fUog0qGFJxNjYXVnfKfVtdLMsbZyceBf2EkxDWQB7vK8LhTeJNsxyKyP2CIToZoy6JM/4LOOVFnYE1OvS8eu/+mkyE9rQzTn8AnMGCPsyGHxzVukyFEK7NIfxmVDGldQ8Z6f99C1irEWhNTcwhvIHsmtK01GTHuVJZdpXyEbVApbKazlQzYrw+Dflk6KLlZZ7N9li1EG4xWVXfaUSYNJknB6AIcKGXv/EktY+t81lwSLJkDnyzxuIqw6HXWmatMRHTb38Bu2yqFwcC7pAT+gQUmMkQ07FN5n3xSh1diapsD9gs4BkLPXWTydTVP9sMD3182B4lk+iwGvoqsE8xc0bx5/Vkl6aQ+hzJ8ppHP7z5xegG2uMpE45jr/peqZHJNmk4jIbCkpPgKL4nsOk6/g1Fk20XUknTPbgo0kcm9URuZqDVK2VHQknRN6EtliNhZTkxkIMtU01idV2QjJlO8sWv2XbLVXX6slEmZawrtegZRwvnUurBRKCxTXHQrGSH/3w/6Tvtm58tMFGeHBeHzR5eoNd87Ckj3i4szq7t0Uq6b2FhNak3HA+xJlaoTnuBfAAAAAElFTkSuQmCC" alt="">
+            </button>
+            <button class="pf-btn" id="pfSettings" title="Настройки">
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAqVJREFUeAG9VtFtGkEQndmDMxgigTD5hg5MBYEO4gpCKsBUAFQQuwKTCuJUAB1AB+Yfo0MK+PDB7WTnMARH0d1sZN+TVqzYt7tzMzvzBsASi6egs1g/Pzyun+l0RP+tgjZYAm3Ijyu/Daju4jiE1K2e525ACAUWQHQ6iRzCRM4rvg2ZXS3hOYFbLpdxKeGKPWAu/yzl7nKbSyn36AGPqKQ3uw5o3SbEGWr9Uzl0z2shOXdA1AQr4NBR4WADOXBh9wU0RR9gXDh1gmz34KGjAfyKzWINUgACTisFt8Fztb9820vrcgYBXc6fNteRMZ7v13SoJoRQgnSxdJRuZEKtepD+5YxSSOobh6Bts8s8miVpPTCjdVE4Qx6atg1N+jvYgqCJJr08tkbCR4SZQt0q5/Ozf61H4SQ1IpK9p/15RAMQIu5yBq8xx0xFRYi9pirF3A27NJmOw7jLT40gDbdJPCKjGYV8P0rD6od8n2Mat0Fnkw89YY8TCFfV4l6wjqU4k4FZ3I6PrjsFIcwHjePWt+rPWVZq+B44GmDqQayAzH2/CUJ4qyD2rAxsaq8M4C7H/PyI2wRaNUGIECm2J0CtRgt/24vmex3QfUhGVDqTMoFrgfHmAwjA3RPaqKCpgjOlEgqR+ToLYVtaVcITU4aclofMmPvbponlJ/OQrm1FjQ3g2Iu7nbcFDvElZhOAdBWRRc2Es6E4njZ68FbQoG+juw9/LNbBhDsVSAGsgpXzszrPj4VIBdkWqxP3azxYoLZK103q1f9L6xHHzst+4+GuybkxZxGfq/L7fjCiSc+b//KbqNRISL8yjcq9hCg2wPOoFLqBJ+FylwRCiMWI+3gEmiXxzM1i1bQyIAJJGg206BssDeDuCUh/5Vf891r0wMxjuyi6Q7DAb4EDTUXjuvLMAAAAAElFTkSuQmCC" alt="">
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-section">
+        <div class="live-panel">
+          <div class="live-title">Live Ставки</div>
+          <div class="live-tabs-wrap">
+            <div class="live-tabs">
+              <button class="active" data-tab="live">Live <span class="lt-count">128</span></button>
+              <button data-tab="mine">My</button>
+              <span class="lt-divider"></span>
+              <button data-tab="top">Top</button>
+            </div>
+          </div>
+          <div class="live-cols">
+            <span class="lc-name">Имя / Ставка</span>
+            <span class="lc-mult">Множитель</span>
+            <span class="lc-win">Выигрыш ₽</span>
+          </div>
+          <div class="live-rows" id="liveTableBody"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="active" id="navMenu">
+        <span class="nb-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAUtJREFUeAHt1kFOwkAUBuD3piKImx6hR+gRYGkMxi6VmHAE3UhYWVfIzhtggsRlm7JwaY/AEXqErhCw7dg3pmC5wEzC+xbTN7s/TafzAzCmF1bDZL54gkLeSwQbNENEf9jvPauZlsksui6DBWAQKbE7uuvFQu0QHDCMQOmqJy2nP/lbmTkBcySF1Qhp2H2D44/AgUwMQDOBmFK40c1FAowxxvY/auIHgd1MW1rLwsZep77npdV+F/BlHk1BwgAMgAJeh7dXD2qmxcQ2U4b0ypChKguF0N8BDxXyL5MK2NrmoWltBkQjpqHWZkRmuSa8zU07D/8fFMYYO2a1NjOefjpwkjmgkSVE+ti/XFb7fZt5j77KRweMIJfr86JLt4m6i6nNgDHhCLrNlUWZwNg2IxDUXWxsm/k+y2Ma6odktuiAZnRIVu1twm3maPwCxI5r7kRYeOgAAAAASUVORK5CYII=" alt=""></span>
+        <span class="nb-label">Меню</span>
+      </button>
+      <button data-name="Главная">
+        <span class="nb-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAm9JREFUeAHtmE1u2kAUx98bkxRVXXAEbtDkBmRZVUWwbNIvn6Bl04hsmmyCyIb0BFAltEsiaNUl7gnCETiCu+hHFDwv81BEsIF47DGJI/FbGc/z+I/f+z97BiEh9jud3CM3m+Pjqv1sCAmBYEjtWycvpNUACQVCyN3MLFokrIPqSzOxRgIPv3ZLlgdNnzD/5K4nwN7bLp5BTATEpN7ufRISOovEMQSQ4xiOhZhEfoJca9m/KqUE76JchwKOd7eLFYhIJIFcb+iJjrpsA+IxJGttK0pdaqf4qP1jQ4nrG4hj1B+87PNcuhdoCayffn9L0mNxeTAnL8k7r592P+gEhwrkAieQrdvMEAdloIaOeRbW4NgMfyxVb1CAJYIIZ/8ee/Z+uezOHZ938toMSaVUh4XmmUlx7aRXECPr/A7FMWPz8L2DAz6BR+3ee0TqJ11vmuT53sG6nKRYuaqhClfLWctmuqljAs13SdCArPWyEF4mheIYVC+Gy6YgoBSKm1BggV8gpRDS57FJ6ifdklRPEhFjfxYlCREdqAbjVF+/cCYu5h7ENocUQIRbLI6PY3+w3hUrgaasBJqyEmhKBsxxVGP9NW9ACHxKBCUwwEig6vKV3VfF49tiDtXiSKWpATExSfEwTByzxzFIQ4iJkUDtSEL92AArF5vycARmR6MBpISLJzdaJgIr9nhl78D940zvMvhSLNCqIIEL94jaYbCnf/sEftx5PpACNEXSb9AFMXQ+vidJsIPbHzMmqe4UWzLjbYYsptReyrr2Il+AUGuM+c36+mE4MrO2WX1TbM2MQwi15s988NxF7r+7aDcq6bmuAPy+8eEZlLs+AAAAAElFTkSuQmCC" alt=""></span>
+        <span class="nb-label">Главная</span>
+      </button>
+      <button data-name="Казино">
+        <span class="nb-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAh1JREFUeAGlVEtu2zAQnSHtAkEL1EdQTlAfwVkWBRxkWbif+ASuN029cr0Kkk3SEyRGa3Qp10XX0RF0g6o30KJBABviZEYyHYmmkgAZgJBIzjzOkO8Ngse+hmFr51ofEsA+ErQBYZJvEIwJIeYxBdWMRm9fJ26schdOZ78HO//1XwY742mHg1uGKB/yL2t8yAVmq6vj2eLQjcfy5OTH4tMayLVE0mP3wN3gQ/qjXvdyK0M5zehsjkCxBzDwgYH4LpuRJFIBFLCiDBVy4BQeaYZ9sbkMpSoLisc/w4CBrvwZ2LLoGxrxxkGdD99devM8222A0Z2ipFrH4Zfe/rn8n3xfRPy5WD9O9VCAnBmKS/1YB0YG+kfvuud2fvS+O0el9zgm9fozzVTOs5rMRh/uXs/a596b2CgY1sS0lZCWiJi4lJT2onJmrq1pEpWWkgIDJqrmpF/wgNX5NEROiNiCp1nAGGP+pkq06e7y5Q5Ez3Yu1Dqd/dnctewR0MATF+N9cuN7maLGl8zgtpRIqF6Ryf4hCjMw2AJkGTaerbLLZUOPPdwqyjDFixuEFCnr8FoAfkukA6lh/yDNbHtibXL80FPKmUjTzUoOstrnhCbSzjbdRko3q+ZctMmubXiUUUzaHIjabMeptC/bJMBXTk37kizLnK3wUE6Ri3VIDvI4RFDpQiI/F2wLcAOqzV4BDJEEKsR8rDUcCdDNi2zXp6ZbcTj1g3qNQ9EAAAAASUVORK5CYII=" alt=""></span>
+        <span class="nb-label">Казино</span>
+      </button>
+      <button data-name="Free Money">
+        <span class="nb-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAABDNJREFUeAG9WcFSG0cQ7Z4VhR3noHxB1l8AfIHFMZUY0NERVKQvAC4B5YK4BPAF8QWQwkqOKotK5ejlD5QvYP0F6GBsKHun3b1arVerlbQzqPSqJI12Z2afuqe734wQLHF0eVVSSMuA8IKAllFjkRCKcg8JeoTkI6KvNf0PoLz61ksPLIAmnRvtdvHpx8I2aNoZkDGAD6g8Us5h/dVPft5BuQiGxO6cAwLYgVkA1UVeolMJvm5dbZOmhoXFpsHnOQ/rlbWLSZ0mEjx50zmdmdXGEVDQ3Pt1bXfs/ayL4tInd06bmyWYC6h7/0yvNsrlXvqOyur+5E69g7mRE+ByZJARjBAUt8oAmD9KJ3/Ls4cxRPCo1anarjkiOtzfXEN5SRssQBp22EA7mQSP/mm7PPMB2EKhn9k2x4HEQDzVoIHaYXLogiGkavDHhQNON76oQ4IeWIA9WHz6yYkNFUZxaL3AuQEz+ERYm1TCZF74oqpc8ow9c/8s+EGiOrRg33pm5HiClWn1tf6q7Ne31hsKnZXI0rmx+EGFa7HvYqISGICchZGcJevm6Pw/V17p/r9Xfhb318AACnFbPlFUCSK9MxjrcaSuJi9klEOfrVaOiMU4ftMxyq+8hFbZgjr3gP4guk5f00TNVK12NQXtZDSGQDRys8i5Aiq1xE81GJUlGsjPyAAuV4dbtlqim8FzpDuQaE5wTQYh4dLIRI5e5cn+6hOdJXAJTy47t6ZSStbGuAh+3fp3mSgohUqbWHEDumBLD6CH7AIzu/fhSyTnEZwShJzHqgj4G1jAlmA0Wl0owLN0tGbhT66xHJGnYAgrF2eAN0jQ1QBvQS144yx7fPm2CVF+y0WOXaxIkVHoj4HLAbrBAXeOwecb9sqNKKN0JyroJhiBfLa6muqeJJDVL/SFwOCVBVfIpqWTlD4woQfwvsAS65obG3kH7W2uryS/T1pbnMAftXTYK12lCY0sGEZlAn9srjVFoGaIAe/h+2GXpsdOh/JCuWUYKCO1OCYQCYWH4n0vawN03Oqcs9+qkA8+P+d5QVoa6IzzVF7JVTppXR3sVV6OyPp6bXxelDFs6SrkBZ9ChB/ydnreLj4sOLdggpw5MFJL8uNLYAAuBM8lXcX7YtMclUCYAxGcwwFZKXesZrZ5XW5Y5Vj+8fuVX0L9GO9JFr/ohqnqjRDmwACCeKsatauWBcCXc5vBl5jgbq3cC/isBGYAdv2PYInwvCZRiUaOPh7h6keDzxTP6pX1oeSeeTZjKs1nA+rup4qAIPNsZvFzUI5K2rzgyeFR1o2Jx2/zcHeWW5NQkwbvb63LUW9t9lK+fyLB1tmdRC7sBzkQnhAEqmGritMQqz18pxtZ5TANo0P0b0ThheleQywmJVUERB5iVgST6CsTXVIKZdvqslncob8hWAizxbssDq5FMdn+DfEVxkv28tUS6pQAAAAASUVORK5CYII=" alt=""></span>
+        <span class="nb-label">Free Money</span>
+      </button>
+      <button data-name="Спорт">
+        <span class="nb-icon"><img src="data:image/png;base64,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" alt=""></span>
+        <span class="nb-label">Спорт</span>
+      </button>
+    </nav>
+
+    <!-- MENU SHEET -->
+    <div class="overlay" id="overlayMenu">
+      <div class="sheet">
+        <div class="sheet-head"><h3>Меню</h3><button class="icon-btn" data-close="overlayMenu">✕</button></div>
+        <div class="menu-item" id="openRules">
+          <div class="mi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v.01M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          Правила игры
+          <span class="chev">›</span>
+        </div>
+        <div class="menu-item" id="openPF">
+          <div class="mi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+          Проверка честности
+          <span class="chev">›</span>
+        </div>
+        <div class="menu-item" id="openLimits">
+          <div class="mi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          Лимиты игры
+          <span class="chev">›</span>
+        </div>
+        <div class="menu-item" style="cursor:default">
+          <div class="mi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+          Анимация
+          <div class="switch on" id="animSwitch"><div class="knob"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULES SHEET -->
+    <div class="overlay" id="overlayRules">
+      <div class="sheet">
+        <div class="sheet-head"><h3>Правила игры</h3><button class="icon-btn" data-close="overlayRules">✕</button></div>
+
+        <div class="acc-item open">
+          <div class="acc-head">Основной механизм<span class="chev">⌄</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            Генератор случайных чисел выбирает целое число от 1 до 100. Ты заранее выбираешь направление —
+            <b>Over</b> («Больше») или <b>Under</b> («Меньше») порога, и сам порог. Ставка выигрывает, если выпавшее
+            число оказалось строго по нужную сторону от порога; само пороговое число считается проигрышным.
+            <div class="ex">Порог 60, направление Over → выигрыш при 61–100 (40 благоприятных исходов из 100).<br>
+            Шанс = 40 / 100 = <code>40%</code>.</div>
+          </div></div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-head">Коэффициент и RTP<span class="chev">⌄</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            Коэффициент выплаты считается по формуле <code>K = RTP / P</code>, где P — вероятность выигрыша
+            (0–1), а RTP — процент возврата игроку, который задаёт оператор (в этом прототипе — от 95% до 99%,
+            по умолчанию 97%). Чем ниже шанс, тем выше коэффициент.
+            <div class="ex">RTP 97%, шанс 40% → K = 0.97 / 0.40 = <code>×2.425</code>.<br>
+            Выигрыш = сумма ставки × K, проигрыш — вся ставка.</div>
+          </div></div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-head">Ставки и лимиты<span class="chev">⌄</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            Крайние значения порога недоступны — при них коэффициент опускается до 1 и ниже, и ставка теряет
+            смысл. Допустимый диапазон порога зависит от направления и текущего RTP — точные цифры смотри в
+            разделе «Лимиты игры». Размер ставки регулируется вручную или кнопками 1/2, ×2, MAX.
+          </div></div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-head">Устранение неполадок<span class="chev">⌄</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            «Ставка» неактивна? Проверь: сумма ставки не превышает баланс, а порог — в допустимом диапазоне
+            для выбранного направления. Если раунд не завершился — подожди анимацию броска или отключи её
+            в меню («Анимация»).
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROVABLY FAIR SHEET -->
+    <div class="overlay" id="overlayPF">
+      <div class="sheet">
+        <div class="sheet-head"><h3>Проверка честности</h3><button class="icon-btn" data-close="overlayPF">✕</button></div>
+        <div class="pf-step">
+          <div class="pf-num">1</div>
+          <div class="pf-text">До раунда сервер фиксирует секретное значение <b>Server Seed</b> и показывает
+          тебе только его хеш — так он не может задним числом подменить результат.
+          <div class="hash-box"><span id="pfHashCommit">8f2c1a9b4e77d0f3c6a5b2e9418f0d7c…</span></div></div>
+        </div>
+        <div class="pf-step">
+          <div class="pf-num">2</div>
+          <div class="pf-text">Ты можешь задать свой <b>Client Seed</b> — он участвует в вычислении результата
+          наравне с серверным.
+          <div class="hash-box"><span id="pfClientSeed">player-8842</span><button id="pfCopyClient"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M4 16V5a1 1 0 011-1h11" stroke="currentColor" stroke-width="1.6"/></svg>Копировать</button></div></div>
+        </div>
+        <div class="pf-step">
+          <div class="pf-num">3</div>
+          <div class="pf-text">После раунда сервер раскрывает исходный <b>Server Seed</b> (Salt). Ты пересчитываешь
+          хеш сам и сверяешь его с тем, что видел до ставки — если совпало, число не подделано.
+          <div class="hash-box"><span id="pfSalt">— появится после первой ставки —</span><button id="pfCopySalt"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M4 16V5a1 1 0 011-1h11" stroke="currentColor" stroke-width="1.6"/></svg>Копировать</button></div></div>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-lo);line-height:1.5;margin-top:14px">
+          Итоговое число — результат HMAC-SHA256(Server Seed, Client Seed:nonce) по модулю 100 + 1. Ни платформа,
+          ни игрок не могут повлиять на исход поодиночке — только математика.
+        </p>
+      </div>
+    </div>
+
+    <!-- LIMITS SHEET -->
+    <div class="overlay" id="overlayLimits">
+      <div class="sheet">
+        <div class="sheet-head"><h3>Лимиты игры</h3><button class="icon-btn" data-close="overlayLimits">✕</button></div>
+        <p style="font-size:12.5px;color:var(--text-md);line-height:1.55;margin:0 0 14px">
+          Ставки в Dice рассчитаны на любой бюджет — от минимального входа до крупных сумм. Размер ставки
+          и порог всегда ограничены так, чтобы коэффициент оставался честным (K &gt; 1).
+        </p>
+        <div class="limit-row">
+          <div class="li"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="lt"><small>Минимальная ставка</small><b id="limMin">10 ₽</b></div>
+        </div>
+        <div class="limit-row">
+          <div class="li"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 18L18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+          <div class="lt"><small>Максимальная ставка</small><b id="limMax">80 000 000 ₽</b></div>
+        </div>
+        <div class="limit-row">
+          <div class="li"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.8"/></svg></div>
+          <div class="lt"><small>Максимальный выигрыш</small><b id="limWin">80 000 000 ₽</b></div>
+        </div>
+        <div class="limit-row">
+          <div class="li"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12l4-4 4 3 4-6 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="lt"><small>Диапазон порога сейчас</small><b id="limRange">4–99 (Over)</b></div>
+        </div>
+
+        <div class="rtp-row">
+          <label>RTP оператора</label>
+          <div class="rtp-picker" id="rtpPicker" style="flex:1">
+            <button data-rtp="95">95%</button>
+            <button data-rtp="96">96%</button>
+            <button data-rtp="97" class="active">97%</button>
+            <button data-rtp="98">98%</button>
+            <button data-rtp="99">99%</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- state ----------
+  const RANGES = { // preset 100, [minOver,maxOver] / [minUnder,maxUnder]
+    95:{over:[6,99], under:[2,95]},
+    96:{over:[5,99], under:[2,96]},
+    97:{over:[4,99], under:[2,97]},
+    98:{over:[3,99], under:[2,98]},
+    99:{over:[2,99], under:[2,99]}
+  };
+  const NAMES = ["Alex","Nika","Rustam","Dana","Egor","Milan","Sofi","Tim","Vera","Igor","Lera","Danil","Oksana","Kirill"];
+  const AVATAR_COLORS = ["#2e7ff2","#f2b33d","#00b300","#ff0034","#8a5cf6","#00b8c4"];
+
+  let state = {
+    balance: 10000,
+    rtp: 97,
+    direction: "over",
+    threshold: 60,
+    betAmount: 100,
+    animEnabled: true,
+    autoOn:false,
+    autoRemaining:0,
+    autoRunning:false,
+    rounds: [],
+    roundNo: 1,
+    dragging:false
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const fmt2 = (n) => n.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // ---------- math ----------
+  function rangeFor(rtp, dir){ return RANGES[rtp][dir]; }
+  function clampThreshold(x, dir, rtp){
+    const [lo,hi] = rangeFor(rtp,dir);
+    return Math.min(hi, Math.max(lo, Math.round(x)));
+  }
+  function pWin(x, dir){
+    return dir === "over" ? (100 - x) / 100 : (x - 1) / 100;
+  }
+  function kFactor(x, dir, rtp){
+    const p = pWin(x, dir);
+    return p > 0 ? (rtp/100) / p : 0;
+  }
+
+  // ---------- rendering ----------
+  function render(){
+    $("balanceDisplay").textContent = fmt2(state.balance);
+
+    $("dirLabel").textContent = state.direction === "over" ? "Roll Over" : "Roll Under";
+
+    const p = pWin(state.threshold, state.direction);
+    const k = kFactor(state.threshold, state.direction, state.rtp);
+    $("thresholdField").value = state.threshold;
+    $("chanceField").value = (p*100).toFixed(2).replace(/\.00$/,'');
+    $("multiplierField").value = "×" + k.toFixed(3);
+    $("betAmountField").value = state.betAmount;
+    $("betAmountField").style.width = String(state.betAmount).length + "ch";
+    $("kDisplay").textContent = k.toFixed(2);
+    $("payoutDisplay").textContent = fmt2(state.betAmount * k);
+
+    // slider visuals
+    const pct = ((state.threshold - 1) / 99) * 100;
+    if(state.direction === "over"){
+      $("fillLose").style.cssText = `left:0;width:${pct}%`;
+      $("fillWin").style.cssText = `left:${pct}%;width:${100-pct}%`;
+    } else {
+      $("fillWin").style.cssText = `left:0;width:${pct}%`;
+      $("fillLose").style.cssText = `left:${pct}%;width:${100-pct}%`;
+    }
+    $("sliderHandle").style.left = pct + "%";
+
+    // limits sheet
+    const [lo,hi] = rangeFor(state.rtp, state.direction);
+    $("limRange").textContent = `${lo}–${hi} (${state.direction==='over'?'Over':'Under'})`;
+    document.querySelectorAll("#rtpPicker button").forEach(b=>{
+      b.classList.toggle("active", Number(b.dataset.rtp) === state.rtp);
+    });
+
+    const betValid = state.betAmount > 0 && state.betAmount <= state.balance;
+    $("btnBet").disabled = !betValid || state.autoRunning;
+  }
+
+  function renderHistory(){
+    const strip = $("historyStrip");
+    strip.innerHTML = "";
+    state.rounds.slice(0,14).forEach(r=>{
+      const p = document.createElement("div");
+      p.className = "pill " + (r.win ? "win" : "lose");
+      p.textContent = r.roll;
+      strip.appendChild(p);
+    });
+  }
+
+  // ---------- toasts ----------
+  function toast(kind, title, msg, ms){
+    const stack = $("toastStack");
+    const el = document.createElement("div");
+    el.className = "toast " + kind;
+    const icon = kind === "win"
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4 10-10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      : kind === "error"
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 16v.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v.01M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    el.innerHTML = `<div class="ic">${icon}</div><div class="body"><b>${title}</b><span>${msg}</span></div>`;
+    stack.appendChild(el);
+    requestAnimationFrame(()=>el.classList.add("show"));
+    setTimeout(()=>{
+      el.classList.remove("show");
+      setTimeout(()=>el.remove(), 260);
+    }, ms || 3200);
+  }
+
+  // ---------- provably fair fake hashing ----------
+  function randHex(len){
+    const chars = "0123456789abcdef";
+    let s = "";
+    for(let i=0;i<len;i++) s += chars[Math.floor(Math.random()*16)];
+    return s;
+  }
+  let pendingCommit = randHex(48);
+  $("pfHashCommit").textContent = pendingCommit;
+
+  // ---------- live bets table ----------
+  let liveRows = [];
+  let myRows = [];
+  let currentTab = "live";
+  function fakeName(){ return NAMES[Math.floor(Math.random()*NAMES.length)] + "•" + Math.floor(Math.random()*90+10); }
+  function pushLiveRow(){
+    const dir = Math.random() > 0.5 ? "over" : "under";
+    const rtp = 97;
+    const [lo,hi] = rangeFor(rtp, dir);
+    const x = Math.floor(Math.random()*(hi-lo+1))+lo;
+    const roll = Math.floor(Math.random()*100)+1;
+    const win = dir === "over" ? roll > x : roll < x;
+    const k = kFactor(x, dir, rtp);
+    const bet = [50,100,250,500,1000,2500][Math.floor(Math.random()*6)];
+    liveRows.unshift({name:fakeName(), color:AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)], x, k, win, bet, payout: win ? bet*k : 0});
+    liveRows = liveRows.slice(0,24);
+    if(currentTab === "live") renderTable();
+  }
+  setInterval(pushLiveRow, 2600);
+  for(let i=0;i<8;i++) pushLiveRow();
+
+  function renderTable(){
+    const body = $("liveTableBody");
+    let rows = currentTab === "live" ? liveRows
+             : currentTab === "mine" ? myRows
+             : [...liveRows, ...myRows].slice().sort((a,b)=>b.payout - a.payout).slice(0,10);
+    if(!rows.length){
+      body.innerHTML = `<div class="empty-row">${currentTab === "mine" ? "Ты ещё не делал ставок" : "Пока нет данных"}</div>`;
+      return;
+    }
+    body.innerHTML = rows.map(r => `
+      <div class="live-row">
+        <div class="lr-name-wrap">
+          <div class="lr-name">${r.name}</div>
+          <div class="lr-bet"><span class="num">${r.bet}</span><span class="cur">.00</span></div>
+        </div>
+        <div class="lr-mult"><span class="lr-mult-badge">×${r.k.toFixed(2)}</span></div>
+        <div class="lr-win ${r.win ? '' : 'lose'}">${r.win ? fmt2(r.payout) : '—'}</div>
+      </div>`).join("");
+  }
+  document.querySelectorAll(".live-tabs button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      document.querySelectorAll(".live-tabs button").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      currentTab = b.dataset.tab;
+      renderTable();
+    });
+  });
+  renderTable();
+
+  // ---------- bet resolution ----------
+  function resolveRoll(x, dir, betAmount, rtp){
+    const roll = Math.floor(Math.random()*100) + 1; // preset 100: 1..100
+    const win = dir === "over" ? roll > x : roll < x;
+    const k = kFactor(x, dir, rtp);
+    const payout = win ? betAmount * k : 0;
+    return {roll, win, k, payout};
+  }
+
+  function showResultBadge(roll, win){
+    const badge = $("resultBadge");
+    const pct = ((roll - 1)/99) * 100;
+    badge.style.left = pct + "%";
+    badge.textContent = roll;
+    badge.className = "result-badge " + (win ? "win" : "lose");
+    void badge.offsetWidth;
+    badge.classList.add("show");
+    clearTimeout(showResultBadge._t);
+    showResultBadge._t = setTimeout(()=> badge.classList.remove("show"), 1700);
+  }
+
+  function placeBet(){
+    if(state.betAmount <= 0 || state.betAmount > state.balance){
+      toast("error","Недостаточно средств","Сумма ставки превышает баланс на счету.");
+      stopAuto();
+      return;
+    }
+    const dir = state.direction, x = state.threshold, bet = state.betAmount, rtp = state.rtp;
+    $("btnBet").disabled = true;
+    state.balance -= bet;
+    render();
+
+    const commit = pendingCommit;
+    pendingCommit = randHex(48);
+
+    const doResolve = () => {
+      const {roll, win, k, payout} = resolveRoll(x, dir, bet, rtp);
+      state.balance += payout;
+      state.roundNo++;
+      state.rounds.unshift({roll, win, x, dir, bet, k, payout});
+      state.rounds = state.rounds.slice(0, 60);
+      myRows.unshift({name:"Ты", color:"#2e7ff2", x, k, win, payout});
+      myRows = myRows.slice(0, 30);
+
+      $("pfSalt").textContent = commit.split("").reverse().join("");
+      showResultBadge(roll, win);
+      renderHistory();
+      render();
+      if(currentTab !== "live") renderTable();
+
+      if(win){
+        toast("win","Выигрыш", `Сумма ₽ ${fmt2(payout)} зачислена на твой кошелёк.`);
+      }
+      $("btnBet").disabled = false;
+
+      if(state.autoRunning){
+        if(state.autoRemaining > 0){
+          state.autoRemaining--;
+          if(state.autoRemaining === 0){ stopAuto(); return; }
+        }
+        if(state.balance < state.betAmount){ stopAuto(); return; }
+        autoTimer = setTimeout(placeBet, 500);
+      }
+    };
+
+    const delay = state.animEnabled ? 650 : 60;
+    setTimeout(doResolve, delay);
+  }
+
+  // ---------- autobet ----------
+  let autoTimer = null;
+  function startAuto(){
+    const activeChip = document.querySelector("#autoChips button.active");
+    state.autoRemaining = Number(activeChip.dataset.n); // 0 = infinite
+    state.autoRunning = true;
+    $("btnAutoStart").textContent = "Остановить автоставку";
+    $("btnAutoStart").classList.add("btn-stop");
+    placeBet();
+  }
+  function stopAuto(){
+    state.autoRunning = false;
+    clearTimeout(autoTimer);
+    $("btnAutoStart").textContent = "Запустить автоставку";
+    $("btnAutoStart").classList.remove("btn-stop");
+    render();
+  }
+
+  // ---------- slider interaction ----------
+  const track = $("sliderTrack");
+  function pctToX(clientX){
+    const rect = track.getBoundingClientRect();
+    let pct = (clientX - rect.left) / rect.width;
+    pct = Math.min(1, Math.max(0, pct));
+    return Math.round(pct*99) + 1;
+  }
+  function onDragMove(e){
+    if(!state.dragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const x = clampThreshold(pctToX(clientX), state.direction, state.rtp);
+    state.threshold = x;
+    render();
+  }
+  function onDragEnd(){ state.dragging = false; }
+  $("sliderHandle").addEventListener("mousedown", ()=> state.dragging = true);
+  $("sliderHandle").addEventListener("touchstart", ()=> state.dragging = true, {passive:true});
+  track.addEventListener("mousedown", (e)=>{
+    state.dragging = true;
+    onDragMove(e);
+  });
+  window.addEventListener("mousemove", onDragMove);
+  window.addEventListener("touchmove", onDragMove, {passive:true});
+  window.addEventListener("mouseup", onDragEnd);
+  window.addEventListener("touchend", onDragEnd);
+
+  // ---------- controls ----------
+  $("dirLabel").addEventListener("click", ()=>{
+    state.direction = state.direction === "over" ? "under" : "over";
+    state.threshold = clampThreshold(state.threshold, state.direction, state.rtp);
+    render();
+  });
+
+  $("thresholdField").addEventListener("change", (e)=>{
+    const v = parseInt(e.target.value, 10);
+    if(!isNaN(v)) state.threshold = clampThreshold(v, state.direction, state.rtp);
+    render();
+  });
+  $("chanceField").addEventListener("change", (e)=>{
+    const c = parseFloat(e.target.value);
+    if(!isNaN(c) && c > 0 && c < 100){
+      const p = c/100;
+      const x = state.direction === "over" ? Math.round(100 - p*100) : Math.round(p*100 + 1);
+      state.threshold = clampThreshold(x, state.direction, state.rtp);
+    }
+    render();
+  });
+
+  $("betAmountField").addEventListener("change", (e)=>{
+    const v = parseFloat(e.target.value);
+    state.betAmount = isNaN(v) || v < 0 ? 0 : Math.round(v);
+    render();
+  });
+  document.querySelectorAll(".quick-btns button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      if(b.dataset.q === "half") state.betAmount = Math.max(1, Math.round(state.betAmount/2));
+      if(b.dataset.q === "double") state.betAmount = Math.round(state.betAmount*2);
+      if(b.dataset.q === "max") state.betAmount = Math.floor(state.balance);
+      render();
+    });
+  });
+
+  $("btnBet").addEventListener("click", ()=>{ if(!state.autoRunning) placeBet(); });
+  function randomizeThreshold(){
+    const [lo,hi] = rangeFor(state.rtp, state.direction);
+    state.threshold = Math.floor(Math.random()*(hi-lo+1))+lo;
+    render();
+  }
+  $("btnRandom").addEventListener("click", randomizeThreshold);
+  $("btnRandom2").addEventListener("click", randomizeThreshold);
+
+  function setMode(mode){
+    state.autoOn = mode === "auto";
+    $("tabManual").classList.toggle("active", !state.autoOn);
+    $("tabAuto").classList.toggle("active", state.autoOn);
+    $("autoPanel").classList.toggle("show", state.autoOn);
+    if(!state.autoOn && state.autoRunning) stopAuto();
+  }
+  $("tabManual").addEventListener("click", ()=> setMode("manual"));
+  $("tabAuto").addEventListener("click", ()=> setMode("auto"));
+  document.querySelectorAll("#autoChips button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      document.querySelectorAll("#autoChips button").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+    });
+  });
+  $("btnAutoStart").addEventListener("click", ()=>{
+    if(state.autoRunning) stopAuto(); else startAuto();
+  });
+
+  $("animSwitch").addEventListener("click", ()=>{
+    state.animEnabled = !state.animEnabled;
+    $("animSwitch").classList.toggle("on", state.animEnabled);
+  });
+
+  $("btnDeposit").addEventListener("click", ()=>{
+    state.balance += 5000;
+    render();
+    toast("info","Демо-пополнение","+5 000 ₽ добавлено для теста. В реальном приложении здесь откроется касса.");
+  });
+  $("bellDot").parentElement.addEventListener("click", ()=>{
+    $("bellDot").style.display = "none";
+    toast("info","Уведомления","Новых уведомлений нет. Загляни в «Правила игры», если что-то не понятно.");
+  });
+  $("btnExit")?.addEventListener("click", ()=>{
+    toast("info","Демо-прототип","В реальном приложении эта кнопка вернёт тебя в лобби казино.");
+  });
+
+  document.querySelectorAll("nav.bottom-nav button[data-name]").forEach(b=>{
+    b.addEventListener("click", ()=> toast("info", b.dataset.name, "Этот раздел не входит в прототип игры Dice."));
+  });
+
+  $("btnReset")?.addEventListener("click", ()=>{
+    state.balance = 10000;
+    state.rounds = [];
+    myRows = [];
+    state.roundNo = 1;
+    renderHistory();
+    render();
+    if(currentTab !== "live") renderTable();
+    toast("info","Сброшено","Баланс и история ставок вернулись к начальным значениям.");
+  });
+
+  // ---------- overlays ----------
+  function openOverlay(id){ $(id).classList.add("show"); }
+  function closeOverlay(id){ $(id).classList.remove("show"); }
+  document.querySelectorAll("[data-close]").forEach(b=>{
+    b.addEventListener("click", ()=> closeOverlay(b.dataset.close));
+  });
+  document.querySelectorAll(".overlay").forEach(o=>{
+    o.addEventListener("click", (e)=>{ if(e.target === o) o.classList.remove("show"); });
+  });
+  $("navMenu").addEventListener("click", ()=> openOverlay("overlayMenu"));
+  $("openRules").addEventListener("click", ()=>{ closeOverlay("overlayMenu"); openOverlay("overlayRules"); });
+  $("openPF").addEventListener("click", ()=>{ closeOverlay("overlayMenu"); openOverlay("overlayPF"); });
+  $("openLimits").addEventListener("click", ()=>{ closeOverlay("overlayMenu"); openOverlay("overlayLimits"); });
+
+  $("pfLabelBtn").addEventListener("click", ()=> openOverlay("overlayPF"));
+  $("pfSound").addEventListener("click", ()=> $("pfSound").classList.toggle("active"));
+  $("pfTurbo").addEventListener("click", ()=> $("pfTurbo").classList.toggle("active"));
+  $("pfSettings").addEventListener("click", ()=> toast("info","Демо-прототип","В реальном приложении здесь откроются настройки игры."));
+
+  document.querySelectorAll(".acc-head").forEach(h=>{
+    h.addEventListener("click", ()=>{
+      const item = h.parentElement;
+      const wasOpen = item.classList.contains("open");
+      item.parentElement.querySelectorAll(".acc-item").forEach(i=>i.classList.remove("open"));
+      if(!wasOpen) item.classList.add("open");
+    });
+  });
+
+  function copyFeedback(btn, text){
+    navigator.clipboard?.writeText(text).catch(()=>{});
+    const original = btn.innerHTML;
+    btn.innerHTML = "✓ Скопировано";
+    setTimeout(()=> btn.innerHTML = original, 1400);
+  }
+  $("pfCopyClient").addEventListener("click", ()=> copyFeedback($("pfCopyClient"), $("pfClientSeed").textContent));
+  $("pfCopySalt").addEventListener("click", ()=> copyFeedback($("pfCopySalt"), $("pfSalt").textContent));
+
+  $("rtpPicker").addEventListener("click", (e)=>{
+    const btn = e.target.closest("button");
+    if(!btn) return;
+    state.rtp = Number(btn.dataset.rtp);
+    state.threshold = clampThreshold(state.threshold, state.direction, state.rtp);
+    render();
+  });
+
+  // ---------- init ----------
+  (function seedHistory(){
+    for(let i=0;i<9;i++){
+      const roll = 1 + Math.floor(Math.random()*100);
+      state.rounds.unshift({roll, win: Math.random() < 0.45});
+    }
+  })();
+  render();
+  renderHistory();
+})();
+</script>
+<div id="__debugBadge" style="position:fixed;top:4px;right:4px;z-index:99999;background:rgba(255,0,0,.85);color:#fff;font:11px/1.3 monospace;padding:4px 7px;border-radius:6px;pointer-events:none;white-space:pre;">?</div>
+<script>
+(function(){
+  function upd(){
+    var b=document.getElementById('__debugBadge');
+    if(!b) return;
+    b.textContent =
+      'inner:'+window.innerWidth+'x'+window.innerHeight+'\n'+
+      'client:'+document.documentElement.clientWidth+'x'+document.documentElement.clientHeight+'\n'+
+      'dpr:'+window.devicePixelRatio+'\n'+
+      'vv:'+(window.visualViewport?Math.round(window.visualViewport.width)+'x'+Math.round(window.visualViewport.height)+' scale:'+window.visualViewport.scale.toFixed(2):'n/a');
+  }
+  upd();
+  window.addEventListener('resize', upd);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', upd);
+})();
+</script>
+</body>
+</html>
